@@ -18,18 +18,16 @@
 // Additional Comments:
 //
 //////////////////////////////////////////////////////////////////////////////////
-module ALU(In1, In2, aluControl, Out, Flags);
+module ALU(In1, In2, Opcode, Out, Flags);
 
     input [15:0] In1, In2;
-    input [15:0] aluControl;
+    //input [15:0] aluControl;
     
-    reg [7:0] Opcode;
-    reg [7:0] Immediate;
+    input [7:0] Opcode;
+    //reg [7:0] Immediate;
     
     output reg [15:0] Out;
     output reg [4:0] Flags; // zero, carry, overflow, negative, low
-    
-    //integer bitPosition;
     
     parameter Cin = 1'b1;
     
@@ -63,8 +61,8 @@ module ALU(In1, In2, aluControl, Out, Flags);
     begin
    	 Flags = 5'b00000;
    	 
-   	 Opcode = {aluControl [15:12], aluControl [7:4]};
-   	 Immediate = {aluControl[11:8], aluControl [3:0]};
+   	 //Opcode = {aluControl [15:12], aluControl [7:4]};
+   	 //Immediate = {aluControl[11:8], aluControl [3:0]};
    	 
    	 case (Opcode[7:4])
    	 
@@ -166,33 +164,38 @@ module ALU(In1, In2, aluControl, Out, Flags);
    	  //immediate instructions
    		 ADDI[7:4]:
    			 begin
-   			 {Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}}; // 3.6 in text book
+   			 //{Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}}; // 3.6 in text book
+				 {Flags[3], Out} = In1 + In2; //new
    			 if( (~In1[15] & ~In2[15] & Out[15]) | (In1[15] & In2[15] & ~Out[15]) ) Flags[2] = 1'b1;
    			 end
    		 ADDUI[7:4]:
    			 begin
-   			 {Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}};
+   			 //{Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}};
+				 {Flags[3], Out} = In1 + In2; //new
    			 if (Out < In1 && Out < In2) Flags[3:2] = 2'b11; //set carry and overflow
    			 // set carry flag
    			 end
    		 ADDCUI[7:4]:
    			 begin
-   			 {Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}} + {15'b0, Cin};
+   			 //{Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}} + {15'b0, Cin};
+				 {Flags[3], Out} = In1 + In2 + {15'b0, Cin}; // new
    			 if (Out < In1 && Out < In2) Flags[3:2] = 2'b11; //set carry and overflow
    			 end
    		 ADDCI[7:4]:
    			 begin
-   			 {Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}} + {15'b0, Cin};
+   			 //{Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}} + {15'b0, Cin};
+				 {Flags[3], Out} = In1 + In2 + {15'b0, Cin}; //new
    			 if ( (~In1[15] & ~In2[15] & Out[15]) | (In1[15] & In2[15] & ~Out[15]) ) Flags[2] = 1'b1;
    			 end
    		 SUBI[7:4]:
    			 begin
-   			 Out = In1 - {{8{Immediate[7]}}, {Immediate[7:0]}};
+   			 //Out = In1 - {{8{Immediate[7]}}, {Immediate[7:0]}};
+				 Out = In1 - In2; //new
    			 if ( (~In1[3] & ~In2[3] & Out[3]) | (In1[3] & In2[3] & ~Out[3]) ) Flags[2] = 1'b1;
    			 //if (Out[15]) Flags[1] = 1'b1; //negative flag
    			 if (In1 < In2) Flags[3] = 1'b1; // is this correct?
    			 end
-   		 CMPI[7:4]:
+   		 CMPI[7:4]: // Continue here******************
    			 begin
    			 if( $signed(In1) < $signed(Immediate) ) Flags[1:0] = 2'b11;
    			 if( In1 == In2) Out = 16'b0000_0000_0000_0000;

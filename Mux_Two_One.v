@@ -1,18 +1,18 @@
-module Mux_Two_One(muxEnable, register, immediate, out);
+module Mux_Two_One(muxCntrl, In_A, In_B, out);
 
-input muxEnable;
-input [15:0] register, immediate; //will this sign extend immediate?
+input muxCntrl;
+input [15:0] In_A, In_B; //will this sign extend immediate?
 output reg [15:0] out;
 
-always @(muxEnable, register, immediate)
+always @(muxCntrl, In_A, In_B)
 begin
 
-	case (muxEnable)
+	case (muxCntrl)
 
 		1'b0:
-					out = register;
+					out = In_A;
 		1'b1:
-					out = immediate;
+					out = In_B;
 		default: 
 					out = 16'b0000_0000_0000_0000;
 	endcase
