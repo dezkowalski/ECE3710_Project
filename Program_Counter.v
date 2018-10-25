@@ -9,7 +9,7 @@ output reg [15:0] address; //What do we want to call this??
  
 	 if (PC_enable == 1'b1)
 	 begin
-		address = address + 16'b0000_0000_0000_0001;
+		address = address + 16'b0000_0000_0001_0000;
 	 end
 	 
  end
