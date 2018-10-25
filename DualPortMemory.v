@@ -31,8 +31,8 @@ module DualPortMemory
 		begin
 		
 			ram[addr_a] <= data_a;
-			q_a = data_a;
-			q_b = data_a;
+			q_a <= data_a;	//Changed to <= from =
+			q_b <= data_a;
 		
 		end
 		
@@ -42,7 +42,7 @@ module DualPortMemory
 			if (we_a) 
 			begin
 				ram[addr_a] <= data_a;
-				q_a = data_a;
+				q_a <= data_a;
 			end
 			else 
 			begin
@@ -51,8 +51,8 @@ module DualPortMemory
 			
 			if (we_b) 
 			begin
-				ram[addr_b] = data_b;
-				q_b = data_b;
+				ram[addr_b] <= data_b;
+				q_b <= data_b;
 			end
 			else 
 			begin
