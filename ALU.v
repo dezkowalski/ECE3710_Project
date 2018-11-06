@@ -37,27 +37,27 @@ module ALU(In1, In2, Opcode, Out, Flags);
     parameter ADDUI =  8'b0110_xxxx;
     parameter ADDC =   8'b0000_0111;
     parameter ADDCU =  8'b0000_0100;
-    parameter ADDCUI = 8'b0001_xxxx;
+    parameter ADDCUI = 8'b1101_xxxx; 
     parameter ADDCI =  8'b0111_xxxx;
     parameter SUB =	8'b0000_1001;
     parameter SUBI =   8'b1001_xxxx;
     parameter CMP =	8'b0000_1011;
     parameter CMPI =   8'b1011_xxxx;
     parameter CMPU =   8'b0000_1101;
-    parameter CMPUI =  8'b0010_xxxx;
+    parameter CMPUI =  8'b1010_xxxx; 
     parameter AND =	8'b0000_0001;
     parameter OR = 	8'b0000_0010;
     parameter XOR =	8'b0000_0011;
     parameter NOT =	8'b0000_1111;
     parameter LSH =	8'b0000_1000;
-    parameter LSHI =   8'b0011_xxxx;
+    parameter LSHI =   8'b1111_xxxx; 
     parameter RSH =	8'b0000_1010;
     parameter RSHI =   8'b1110_xxxx;
     parameter ALSH =   8'b0000_1100;
     parameter ARSH =   8'b0000_1110;
     parameter NOP =	8'b0000_0000;
     
-    always @(In1, In2, aluControl)
+    always @(In1, In2, Opcode)
     begin
    	 Flags = 5'b00000;
    	 
@@ -162,58 +162,63 @@ module ALU(In1, In2, Opcode, Out, Flags);
    				 endcase
    	   
    	  //immediate instructions
-   		 ADDI[7:4]:
+   		 ADDI[5:2]:
    			 begin
-   			 //{Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}}; // 3.6 in text book
-				 {Flags[3], Out} = In1 + In2; //new
+   			 {Flags[3], Out} = In1 + {{8{In2[7]}}, {In2[7:0]}}; // 3.6 in text book
+				 //{Flags[3], Out} = In1 + In2; //new
    			 if( (~In1[15] & ~In2[15] & Out[15]) | (In1[15] & In2[15] & ~Out[15]) ) Flags[2] = 1'b1;
    			 end
-   		 ADDUI[7:4]:
+   		 ADDUI[5:2]:
    			 begin
-   			 //{Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}};
-				 {Flags[3], Out} = In1 + In2; //new
+   			 {Flags[3], Out} = In1 + {{8'b0000_0000}, {In2[7:0]}};
+				 //{Flags[3], Out} = In1 + In2; //new
    			 if (Out < In1 && Out < In2) Flags[3:2] = 2'b11; //set carry and overflow
    			 // set carry flag
    			 end
-   		 ADDCUI[7:4]:
+   		 ADDCUI[5:2]:
    			 begin
-   			 //{Flags[3], Out} = In1 + {{8'b0000_0000}, {Immediate[7:0]}} + {15'b0, Cin};
-				 {Flags[3], Out} = In1 + In2 + {15'b0, Cin}; // new
+   			 {Flags[3], Out} = In1 + {{8'b0000_0000}, {In2[7:0]}} + {15'b0, Cin};
+				 //{Flags[3], Out} = In1 + In2 + {15'b0, Cin}; // new
    			 if (Out < In1 && Out < In2) Flags[3:2] = 2'b11; //set carry and overflow
    			 end
-   		 ADDCI[7:4]:
+   		 ADDCI[5:2]:
    			 begin
-   			 //{Flags[3], Out} = In1 + {{8{Immediate[7]}}, {Immediate[7:0]}} + {15'b0, Cin};
-				 {Flags[3], Out} = In1 + In2 + {15'b0, Cin}; //new
+   			 {Flags[3], Out} = In1 + {{8{In2[7]}}, {In2[7:0]}} + {15'b0, Cin};
+				 //{Flags[3], Out} = In1 + In2 + {15'b0, Cin}; //new
    			 if ( (~In1[15] & ~In2[15] & Out[15]) | (In1[15] & In2[15] & ~Out[15]) ) Flags[2] = 1'b1;
    			 end
-   		 SUBI[7:4]:
+   		 SUBI[5:2]:
    			 begin
-   			 //Out = In1 - {{8{Immediate[7]}}, {Immediate[7:0]}};
-				 Out = In1 - In2; //new
+   			 Out = In1 - {{8{In2[7]}}, {In2[7:0]}};
+				 //Out = In1 - In2; //new
    			 if ( (~In1[3] & ~In2[3] & Out[3]) | (In1[3] & In2[3] & ~Out[3]) ) Flags[2] = 1'b1;
    			 //if (Out[15]) Flags[1] = 1'b1; //negative flag
    			 if (In1 < In2) Flags[3] = 1'b1; // is this correct?
    			 end
-   		 CMPI[7:4]: // Continue here******************
+   		 CMPI[5:2]:
    			 begin
-   			 if( $signed(In1) < $signed(Immediate) ) Flags[1:0] = 2'b11;
+   			 //if( $signed(In1) < $signed(Immediate) ) Flags[1:0] = 2'b11;
+				 if( $signed(In1) < $signed(In2) ) Flags[1:0] = 2'b11;
    			 if( In1 == In2) Out = 16'b0000_0000_0000_0000;
    			 else Out = 16'b0000_0000_0000_0001;    
    			 end
-   		 CMPUI[7:4]: //same as previous?
+   		 CMPUI[5:2]:
    			 begin
-   			 if( In1 < Immediate ) Flags[1:0] = 2'b11;
-   			 if( In1 == Immediate) Out = 16'b0000_0000_0000_0000;
+   			 //if( In1 < Immediate ) Flags[1:0] = 2'b11;
+   			 //if( In1 == Immediate) Out = 16'b0000_0000_0000_0000;
+				 if( In1 < In2 ) Flags[1:0] = 2'b11;
+				 if( In1 == In2) Out = 16'b0000_0000_0000_0000;
    			 else Out = 16'b0000_0000_0000_0001;    
    			 end
-   		 LSHI[7:4]: // shift by immediate specified amount
+   		 LSHI[5:2]: // shift by immediate specified amount
    			 begin
-   			 Out = In1 << Immediate;
+   			 //Out = In1 << Immediate;
+				 Out = In1 << In2;
    			 end
-   		 RSHI[7:4]: // shift by immediate specified amount
+   		 RSHI[5:2]: // shift by immediate specified amount
    			 begin
-   			 Out = In1 >> Immediate;
+   			 //Out = In1 >> Immediate;
+				 Out = In1 >> In2;
    			 end
    		 default:
    			 begin
